@@ -1,0 +1,56 @@
+[package]
+name = "db_connector"
+version = "0.1.0"
+edition = "2021"
+description = "A high-performance PostgreSQL connector for Python, written in Rust"
+license = "MIT"
+
+[lib]
+name = "db_connector"
+crate-type = ["cdylib"]
+
+[dependencies]
+# Python bindings
+pyo3 = { version = "0.22", features = ["extension-module"] }
+
+# Async runtime - only include what we need for better compile times
+tokio = { version = "1", features = ["rt-multi-thread", "sync", "time", "macros"] }
+
+# PostgreSQL
+tokio-postgres = { version = "0.7", features = ["with-chrono-0_4", "with-serde_json-1", "with-uuid-1"] }
+deadpool-postgres = { version = "0.14" }
+postgres-types = { version = "0.2", features = ["derive"] }
+
+# TLS support
+tokio-native-tls = "0.3"
+postgres-native-tls = "0.5"
+native-tls = "0.2"
+
+# Serialization & utilities
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+thiserror = "2"
+bytes = "1"
+
+# Performance: LRU cache for prepared statements
+lru = "0.12"
+parking_lot = "0.12"
+
+# Performance: faster hashing
+ahash = "0.8"
+
+[profile.release]
+# Maximum performance optimizations
+opt-level = 3
+lto = "fat"                 # Full link-time optimization
+codegen-units = 1           # Single codegen unit for better optimization
+panic = "abort"             # Smaller binary, faster execution
+strip = true                # Strip symbols for smaller binary
+
+[profile.release.build-override]
+opt-level = 3
+
+[profile.dev]
+opt-level = 1               # Faster dev builds while keeping some optimization
